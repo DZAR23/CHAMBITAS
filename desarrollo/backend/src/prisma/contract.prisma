@@ -1,0 +1,65 @@
+
+// use prisma-8
+
+model User {
+  id          Int                @id @default(autoincrement())
+  email       String             @unique
+  passwordHash String
+  fullName    String
+  phone       String?
+  role        String             @default("CLIENT")
+  isActive    Boolean            @default(true)
+
+  workerProfile WorkerProfile?
+  jobs          Job[]
+  proposals     Proposal[]
+
+  createdAt DateTime           @default(now()) @onCreate(now())
+  updatedAt temporal.UpdatedAt
+}
+
+model WorkerProfile {
+  id          Int       @id @default(autoincrement())
+  userId      Int       @unique
+  user        User      @relation(fields: [userId], references: [id])
+
+  description String?
+  experience  String?
+  city        String    @default("Trujillo")
+  isAvailable Boolean   @default(true)
+}
+
+model Job {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String
+  category    String
+  budget      Float?
+  city        String    @default("Trujillo")
+  status      String    @default("OPEN")
+
+  clientId    Int
+  client      User      @relation(fields: [clientId], references: [id])
+  proposals   Proposal[]
+
+  createdAt DateTime           @default(now()) @onCreate(now())
+  updatedAt temporal.UpdatedAt
+}
+
+model Proposal {
+  id          Int       @id @default(autoincrement())
+  jobId       Int
+  workerId    Int
+
+  job         Job       @relation(fields: [jobId], references: [id])
+  worker      User      @relation(fields: [workerId], references: [id])
+
+  message     String?
+  amount      Float
+  status      String    @default("PENDING")
+
+  createdAt DateTime           @default(now()) @onCreate(now())
+  updatedAt temporal.UpdatedAt
+
+  @@unique([jobId, workerId])
+}
